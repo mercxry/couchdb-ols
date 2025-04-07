@@ -24,7 +24,7 @@ jobs:
         id: version
         run: |
           # Extract version from the Containerfile
-          COUCHDB_VERSION=$(grep -m 1 "^FROM docker.io/couchdb:" Containerfile | sed -n 's/FROM docker.io/couchdb:\([0-9.]*\).*/\1/p')
+          COUCHDB_VERSION=$(grep -m 1 "^FROM docker.io/couchdb:" Containerfile | sed -n 's/FROM docker.io\/couchdb:\([0-9.]*\).*/\1/p')
           echo "COUCHDB_VERSION=$COUCHDB_VERSION" >> $GITHUB_OUTPUT
 
           # Check if this version already has a tag

@@ -1,0 +1,45 @@
+name: Tag CouchDB Version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Containerfile"
+
+jobs:
+  tag-version:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full history for comparing versions
+
+      - name: Extract CouchDB version
+        id: version
+        run: |
+          # Extract version from the Containerfile
+          COUCHDB_VERSION=$(grep -m 1 "^FROM docker.io/couchdb:" Containerfile | sed -n 's/FROM docker.io/couchdb:\([0-9.]*\).*/\1/p')
+          echo "COUCHDB_VERSION=$COUCHDB_VERSION" >> $GITHUB_OUTPUT
+
+          # Check if this version already has a tag
+          if git tag -l "$COUCHDB_VERSION" | grep -q "$COUCHDB_VERSION"; then
+            echo "TAG_EXISTS=true" >> $GITHUB_OUTPUT
+          else
+            echo "TAG_EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        if: steps.version.outputs.TAG_EXISTS == 'false' && steps.version.outputs.COUCHDB_VERSION != ''
+        run: |
+          echo "Creating new tag: ${{ steps.version.outputs.COUCHDB_VERSION }}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ steps.version.outputs.COUCHDB_VERSION }} -m "CouchDB version ${{ steps.version.outputs.COUCHDB_VERSION }}"
+          git push origin ${{ steps.version.outputs.COUCHDB_VERSION }}
+          echo "Successfully created and pushed tag ${{ steps.version.outputs.COUCHDB_VERSION }}"

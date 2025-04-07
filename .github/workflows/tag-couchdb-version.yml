@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Need full history for comparing versions
+          token: ${{ secrets.CORELLIA_PAT }}
 
       - name: Extract CouchDB version
         id: version
@@ -38,8 +39,8 @@ jobs:
         if: steps.version.outputs.TAG_EXISTS == 'false' && steps.version.outputs.COUCHDB_VERSION != ''
         run: |
           echo "Creating new tag: ${{ steps.version.outputs.COUCHDB_VERSION }}"
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github@corellia.host"
+          git config --local user.name "corellia"
           git tag -a ${{ steps.version.outputs.COUCHDB_VERSION }} -m "CouchDB version ${{ steps.version.outputs.COUCHDB_VERSION }}"
           git push origin ${{ steps.version.outputs.COUCHDB_VERSION }}
           echo "Successfully created and pushed tag ${{ steps.version.outputs.COUCHDB_VERSION }}"
